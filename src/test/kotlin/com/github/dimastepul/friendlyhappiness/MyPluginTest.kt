@@ -1,39 +1,35 @@
 package com.github.dimastepul.friendlyhappiness
 
-import com.intellij.ide.highlighter.XmlFileType
 import com.intellij.openapi.components.service
-import com.intellij.psi.xml.XmlFile
 import com.intellij.testFramework.TestDataPath
 import com.intellij.testFramework.fixtures.BasePlatformTestCase
-import com.intellij.util.PsiErrorElementUtil
 import com.github.dimastepul.friendlyhappiness.services.MyProjectService
+import junit.framework.TestCase
+
 
 @TestDataPath("\$CONTENT_ROOT/src/test/testData")
 class MyPluginTest : BasePlatformTestCase() {
 
-    fun testXMLFile() {
-        val psiFile = myFixture.configureByText(XmlFileType.INSTANCE, "<foo>bar</foo>")
-        val xmlFile = assertInstanceOf(psiFile, XmlFile::class.java)
-
-        assertFalse(PsiErrorElementUtil.hasErrors(project, xmlFile.virtualFile))
-
-        assertNotNull(xmlFile.rootTag)
-
-        xmlFile.rootTag?.let {
-            assertEquals("foo", it.name)
-            assertEquals("bar", it.value.text)
-        }
-    }
-
-    fun testRename() {
-        myFixture.testRename("foo.xml", "foo_after.xml", "a2")
-    }
 
     fun testProjectService() {
+        myFixture.copyDirectoryToProject("testData", ".")
         val projectService = project.service<MyProjectService>()
 
-        assertNotSame(projectService.getRandomNumber(), projectService.getRandomNumber())
+        val counts = projectService.totalAmount()
+        TestCase.assertEquals(AmountClassesFuncs(3, 2), counts.countComponentsForDir("/src/kotlinFiles/" +
+                "subDirectory/B.kt"))
+        TestCase.assertEquals(AmountClassesFuncs(0, 0), counts.countComponentsForDir("/src/kotlinFiles/C.kt"))
+        TestCase.assertEquals(AmountClassesFuncs(1, 2), counts.countComponentsForDir("/src/kotlinFiles/A.kt"))
+
+
+        TestCase.assertFalse(counts.isDirectoryExists("src/FakeFiles/asdfs.txt"))
+        TestCase.assertFalse(counts.isDirectoryExists("src/FakeFiles/fakeKotlin.txt"))
+        TestCase.assertFalse(counts.isDirectoryExists("src/FakeFiles/Rustlin.rs"))
+
+        TestCase.assertFalse(counts.isDirectoryExists("src/xmlFiles/foo.xml"))
+        TestCase.assertFalse(counts.isDirectoryExists("src/FakeFiles/foo_alert.xml"))
+
     }
 
-    override fun getTestDataPath() = "src/test/testData/rename"
+    override fun getTestDataPath() = "src/test/"
 }

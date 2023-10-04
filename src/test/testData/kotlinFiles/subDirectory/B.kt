@@ -23,6 +23,6 @@ class Client(val personalInfo: PersonalInfo?)
 
 class PersonalInfo(val email: String?)
 
-interface Mailer {
+class Mailer {
     fun sendMessage(email: String, message: String)
 }

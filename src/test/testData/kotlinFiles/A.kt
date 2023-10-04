@@ -1,42 +1,20 @@
-enum class Mark { A, B, Fail }
+package com.github.dimastepul.friendlyhappiness
 
-data class ExaminationSheet(
-        val studentName: String,
-        val courseName: String,
-        /** Количество пересдач. Если экзамен сдан с первой попытки, должно быть нулём. */
-        var retries: Int = 0,
-        /** Текущая оценка. Значением null обозначена ситуация, когда студен ещё не пытался сдавать экзамен. */
-        var mark: Mark? = null
-) {
-    init {
-        if (mark == null) require(retries == 0)
-    }
-}
+import com.intellij.DynamicBundle
+import org.jetbrains.annotations.NonNls
+import org.jetbrains.annotations.PropertyKey
 
-fun examineStudent(examinationSheet: ExaminationSheet): Mark {
-    return when {
-        examinationSheet.retries > 3 -> Mark.B
-        examinationSheet.studentName.first() == examinationSheet.courseName.first() -> Mark.A
-        examinationSheet.studentName.first().let { it in 'А'..'Я' && (it - 'А') % 2 == 0 } -> Mark.B
-        else -> Mark.Fail
-    }
-}
+@NonNls
+private const val BUNDLE = "messages.MyBundle"
 
+object MyBundle : DynamicBundle(BUNDLE) {
 
-fun runExam(examinationSheets: List<ExaminationSheet>) {
-    examinationSheets.forEach { sheet ->
-        /** Если у студента уже есть отметка, то он пришёл на пересдачу. */
-        sheet.mark.let { sheet.retries++ }
+    @JvmStatic
+    fun message(@PropertyKey(resourceBundle = BUNDLE) key: String, vararg params: Any) =
+            getMessage(key, *params)
 
-        sheet.mark = examineStudent(sheet)
-    }
-}
-
-fun main() {
-    val sheets = listOf(
-            ExaminationSheet("Альберт", "Алгебра", 0, null),
-            ExaminationSheet("Георгий", "Биология", 1, Mark.B)
-    )
-    runExam(sheets)
-    println(sheets.joinToString(""))
+    @Suppress("unused")
+    @JvmStatic
+    fun messagePointer(@PropertyKey(resourceBundle = BUNDLE) key: String, vararg params: Any) =
+            getLazyMessage(key, *params)
 }
